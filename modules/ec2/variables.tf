@@ -33,14 +33,21 @@ variable "sg_name" {
   description = "The name of the security group"
   default     = "main_sg"
 }
-variable "allowed_ports" {
-  type    = list(number)
-  default = [22, 80, 443]
+
+# variable "allowed_ports" {
+#   type    = list(number)
+#   default = [22, 80, 443]
+# }
+# variable "cidr_blocks" {
+#   type    = list(string)
+#   default = ["0.0.0.0/0"]
+# }
+
+variable "sg_id" {
+  description = "Security group ID to attach to EC2 instance"
+  type        = string
 }
-variable "cidr_blocks" {
-  type    = list(string)
-  default = ["0.0.0.0/0"]
-}
+
 
 variable "user_data" {
   type    = string
