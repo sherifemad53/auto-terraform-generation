@@ -81,10 +81,6 @@ module "pravite_rt" {
   
 }
 
-
-
-
-
 # Security Group
 module "sg" {
   source        = "./modules/sg"

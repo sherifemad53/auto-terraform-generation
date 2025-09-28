@@ -20,10 +20,6 @@ variable "instance_name" {
   default     = "EC2_Instance"
 }
 
-variable "vpc_id" {
-  description = "The VPC ID where the EC2 instance will be deployed"
-}
-
 variable "subnet_id" {
   description = "The subnet ID where the EC2 instance will be deployed"
 }
@@ -34,15 +30,6 @@ variable "sg_name" {
   default     = "main_sg"
 }
 
-# variable "allowed_ports" {
-#   type    = list(number)
-#   default = [22, 80, 443]
-# }
-# variable "cidr_blocks" {
-#   type    = list(string)
-#   default = ["0.0.0.0/0"]
-# }
-
 variable "sg_id" {
   description = "Security group ID to attach to EC2 instance"
   type        = string
@@ -51,11 +38,5 @@ variable "sg_id" {
 
 variable "user_data" {
   type    = string
-  default = <<-EOF
-              #!/bin/bash
-              apt update -y
-              apt install -y nginx
-              systemctl start nginx
-              systemctl enable nginx
-              EOF
+  default = ""
 }
