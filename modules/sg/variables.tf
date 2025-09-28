@@ -7,12 +7,22 @@ variable "vpc_id" {
   type = string
 }
 
-variable "allowed_ports" {
-  type    = list(number)
-  default = [22, 80, 443]
+variable "ingress_rules" {
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+  default = []
 }
 
-variable "cidr_blocks" {
-  type    = list(string)
-  default = ["0.0.0.0/0"]
+variable "egress_rules" {
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+  default = []
 }

@@ -29,15 +29,37 @@ variable "sg_name" {
   type        = string
 }
 
-variable "sg_allowed_ports" {
-  description = "Allowed ingress ports"
-  type        = list(number)
+variable "sg_ingress_rules" {
+  description = "Ingress rules for the security group"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+  default = []
 }
 
-variable "sg_cidr_blocks" {
-  description = "CIDR blocks for ingress"
-  type        = list(string)
+variable "sg_egress_rules" {
+  description = "Egress rules for the security group"
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+  default = []
 }
+
+# variable "sg_allowed_ports" {
+#   description = "Allowed ingress ports"
+#   type        = list(number)
+# }
+
+# variable "sg_cidr_blocks" {
+#   description = "CIDR blocks for ingress"
+#   type        = list(string)
+# }
 
 # EC2
 variable "ec2_ami" {

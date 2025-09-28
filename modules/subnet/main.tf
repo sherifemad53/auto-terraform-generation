@@ -6,10 +6,13 @@ resource "aws_subnet" "this" {
   availability_zone       = each.value.az
   map_public_ip_on_launch = each.value.public
 
-  tags = {
-    Name = each.key
-    Type = each.value.public ? "public" : "private"
-  }
+  tags = merge(
+    {
+      Name = each.key
+      Type = each.value.public ? "public" : "private"
+    },
+    try(each.value.tags, {})
+  )
 }
 
 

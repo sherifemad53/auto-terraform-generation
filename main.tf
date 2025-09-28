@@ -46,13 +46,52 @@ module "nat_gateway" {
   name              = "${var.vpc_name}-nat"
 }
 
+
+# Route Table
+module "public_rt" {
+  source     = "./modules/rt"
+  name       = "${var.vpc_name}-rt"
+  vpc_id     = module.vpc.vpc_id
+  routes = [
+    {
+      cidr_block = "0.0.0.0/0",
+      gateway_id = module.igw.igw_id
+      },
+      ]
+  subnet_ids = module.subnet.public_subnets
+  tags       = { Environment = "public" }
+
+  depends_on = [ module.subnet ]
+  
+}
+
+module "pravite_rt" {
+  source     = "./modules/rt"
+  name       = "${var.vpc_name}-rt"
+  vpc_id     = module.vpc.vpc_id
+  routes = [
+    {
+      cidr_block = "0.0.0.0/0",
+      nat_gateway_id = module.nat_gateway.nat_gateway_id
+      },
+      ]
+  subnet_ids = module.subnet.private_subnets
+  tags       = { Environment = "private" }
+  depends_on = [ module.subnet ]
+  
+}
+
+
+
+
+
 # Security Group
 module "sg" {
   source        = "./modules/sg"
   vpc_id        = module.vpc.vpc_id
   name          = var.sg_name
-  allowed_ports = var.sg_allowed_ports
-  cidr_blocks   = var.sg_cidr_blocks
+  ingress_rules = var.sg_ingress_rules
+egress_rules = var.sg_egress_rules
 }
 
 # EC2
