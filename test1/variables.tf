@@ -1,8 +1,11 @@
-variable "region" { type = string defualt= "${region}"} 
+variable "region" {
+  type    = string
+  default = "us-east-1"
+}
 variable "vpc_vpc_name" {}
 variable "vpc_vpc_cidr" {}
-variable "subnets_vpc_id" {}
-variable "subnets_subnets" {}
+variable "subnet_vpc_id" {}
+variable "subnet_subnets" {}
 variable "ec2_ami" {}
 variable "ec2_instance_type" {}
 variable "ec2_key_name" {}

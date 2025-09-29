@@ -18,10 +18,10 @@ module "vpc" {
   vpc_cidr = var.vpc_vpc_cidr
 }
 
-module "subnets" {
+module "subnet" {
   source = "./modules/subnet"
-  vpc_id = var.subnets_vpc_id
-  subnets = var.subnets_subnets
+  vpc_id = var.subnet_vpc_id
+  subnets = var.subnet_subnets
 }
 
 module "ec2" {
