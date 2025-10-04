@@ -1,4 +1,4 @@
-variable "region" { type = string defualt= "${region}"} 
+variable "region" { type = string,defualt= "${region}"} 
 variable "vpc_vpc_name" {}
 variable "vpc_vpc_cidr" {}
 variable "subnets_vpc_id" {}
