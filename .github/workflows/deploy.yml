@@ -81,7 +81,7 @@ jobs:
           git branch -M main
           git add .
           git commit -m "Initial commit"
-          git remote add origin https://github.com/${{ github.repository_owner }}/${{ steps.project.outputs.project_name }}.git
+          git remote add origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository_owner }}/${{ steps.project.outputs.project_name }}.git
           git push -u origin main
 
 
