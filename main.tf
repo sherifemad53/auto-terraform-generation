@@ -98,7 +98,6 @@ module "ec2" {
   key_name          = var.ec2_key_name
   enable_monitoring = var.ec2_enable_monitoring
   instance_name     = var.ec2_instance_name
-  vpc_id            = module.vpc.vpc_id
   subnet_id         = values(module.subnet.subnet_ids)[0]
   sg_id             = module.sg.sg_id
 }

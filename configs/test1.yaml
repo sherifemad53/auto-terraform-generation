@@ -2,12 +2,10 @@ region: "us-east-1"
 
 modules:
   vpc:
-    source: "./modules/vpc"
     vpc_name: "my-vpc"
     vpc_cidr: "10.0.0.0/16"
 
   subnet:
-    source: "./modules/subnet"
     vpc_id: "module.vpc.vpc_id"
     subnets:
       subnet-1:
@@ -20,7 +18,6 @@ modules:
         public: false
 
   ec2:
-    source: "./modules/ec2"
     ami: "ami-0360c520857e3138f"
     instance_type: "t2.micro"
     key_name: "my-keypair"
@@ -29,7 +26,6 @@ modules:
     sg_id: "module.sg.sg_id"
 
   sg:
-    source: "./modules/sg"
     vpc_id: "module.vpc.vpc_id"
     name: "main-sg"
     ingress_rules:

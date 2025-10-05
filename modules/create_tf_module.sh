@@ -35,26 +35,11 @@ EOF
 # variables.tf
 cat > "${MODULE_DIR}/variables.tf" <<EOF
 # Variables for ${MODULE_NAME} module
-
-variable "name" {
-  type        = string
-  description = "Name tag for the ${MODULE_NAME}"
-}
-
-variable "tags" {
-  type        = map(string)
-  description = "Additional tags"
-  default     = {}
-}
 EOF
 
 # outputs.tf
 cat > "${MODULE_DIR}/outputs.tf" <<EOF
 # Outputs for ${MODULE_NAME} module
-
-output "id" {
-  value = aws_${MODULE_NAME}.this.id
-}
 EOF
 
 # README.md
