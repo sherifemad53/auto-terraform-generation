@@ -164,5 +164,5 @@ if __name__ == "__main__":
 
     yaml_file = args.yaml
     project_dir = generate_tf_project(yaml_file)
-    check_aws_credentials()
-    run_terraform_commands(project_dir, do_apply=args.apply)
+    # check_aws_credentials()
+    # run_terraform_commands(project_dir, do_apply=args.apply)
