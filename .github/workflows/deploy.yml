@@ -68,6 +68,12 @@ jobs:
             gh repo create $REPO --public --description "Auto-generated Terraform project" --confirm
           fi
 
+      - name: Configure git user
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+
+
       - name: Push generated Terraform to target repo
         run: |
           cd generated-projects/${{ steps.project.outputs.project_name }}
