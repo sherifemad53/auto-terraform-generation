@@ -70,7 +70,7 @@ jobs:
 
       - name: Push generated Terraform to target repo
         run: |
-          cd ${{ steps.project.outputs.project_name }}
+          cd generated-projects/${{ steps.project.outputs.project_name }}
           git init
           git branch -M main
           git add .
