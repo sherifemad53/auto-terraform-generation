@@ -96,6 +96,9 @@ jobs:
             # Generate Terraform project
             python3 scripts/deploy.py "$FILE"
 
+            echo "Listing generated files:"
+            ls -la "$NAME"
+
             # Target repo info
             REPO="${GH_OWNER}/${NAME}"
             TARGET_DIR="generated-projects/${NAME}"
@@ -125,7 +128,7 @@ jobs:
             cp -r "$NAME"/* "$TARGET_DIR"/
 
             cd "$TARGET_DIR"
-            
+
             echo "🔧 Initializing Terraform with S3 backend..."
             terraform init 
 

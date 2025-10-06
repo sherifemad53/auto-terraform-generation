@@ -83,11 +83,8 @@ def generate_tf_project(yaml_file):
     flat_vars = flatten_vars(config)
     (project_dir / "terraform.tfvars.json").write_text(json.dumps(flat_vars, indent=2))
 
-    backend_block = get_backend_config(project_dir)
-    if backend_block:
-        with open("backend.tf", "w") as f:
-            f.write(backend_block)
-
+    add_backend_config(project_dir)
+    
     add_gitignore(project_dir)
 
     print(f"✅ Project '{project_name}' generated for AWS at {project_dir.absolute()}")
@@ -153,16 +150,27 @@ def run_terraform_commands(project_dir, do_apply=False):
     finally:
         os.chdir(cwd)
 
-def get_backend_config(project_dir):
+def add_backend_config(project_dir):
+    """
+    Create or update backend.tf for Terraform state storage in S3.
+    """
     project_name = project_dir.name
-    return f"""terraform {{
+    backend_tf_path = project_dir / "backend.tf"
+
+    backend_block = f"""terraform {{
   backend "s3" {{
     bucket = "my-terraform-states-konecta"
     key    = "{project_name}/terraform.tfstate"
     region = "us-east-1"
+    encrypt = true
   }}
 }}
 """
+    # Always overwrite safely
+    with open(backend_tf_path, "w") as f:
+        f.write(backend_block)
+
+    print(f"✅ Added backend config at {backend_tf_path}")
 
 def add_gitignore(project_dir):
     gitignore_path = project_dir / ".gitignore"
