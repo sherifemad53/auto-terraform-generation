@@ -96,6 +96,9 @@ jobs:
             # Generate Terraform project
             python3 scripts/deploy.py "$FILE"
 
+            echo "🔧 Initializing Terraform with S3 backend..."
+            terraform init 
+
             # Target repo info
             REPO="${GH_OWNER}/${NAME}"
             TARGET_DIR="generated-projects/${NAME}"
@@ -133,9 +136,8 @@ jobs:
             else
               echo "No changes to push."
             fi
-            
-            echo "🔧 Initializing Terraform with S3 backend..."
-            terraform init 
+            echo "✅ Code pushed to $REPO"
+
             
             echo "📋 Running Terraform plan..."
             terraform plan

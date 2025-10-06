@@ -83,6 +83,11 @@ def generate_tf_project(yaml_file):
     flat_vars = flatten_vars(config)
     (project_dir / "terraform.tfvars.json").write_text(json.dumps(flat_vars, indent=2))
 
+    backend_block = get_backend_config(project_dir)
+    if backend_block:
+        with open("backend.tf", "w") as f:
+            f.write(backend_block)
+
     print(f"✅ Project '{project_name}' generated for AWS at {project_dir.absolute()}")
     return project_dir
 
@@ -138,12 +143,6 @@ def run_terraform_commands(project_dir, do_apply=False):
     try:
         os.chdir(project_dir)
 
-        # Add backend dynamically
-        backend_block = get_backend_config(project_dir)
-        if backend_block:
-            with open("backend.tf", "w") as f:
-                f.write(backend_block)
-
         subprocess.run(["terraform", "init"], check=True)
         if do_apply:
             subprocess.run(["terraform", "apply", "-auto-approve"], check=True)
@@ -172,6 +171,6 @@ if __name__ == "__main__":
 
     yaml_file = args.yaml
     project_dir = generate_tf_project(yaml_file)
-    get_backend_config(project_dir)
+    # get_backend_config(project_dir)
     # check_aws_credentials()
     # run_terraform_commands(project_dir, do_apply=args.apply)
