@@ -35,9 +35,12 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: changing defualt branch naming to main
+      - name: setup git
         run: |
           git config --global init.defaultBranch main
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+
 
       - name: Install dependencies
         run: pip install pyyaml
@@ -48,13 +51,7 @@ jobs:
           FILE=$(ls configs/*.yaml | head -n 1)
           NAME=$(basename "$FILE" .yaml)
           echo "project_name=$NAME" >> $GITHUB_OUTPUT
-
-      - name: Generate Terraform project
-        run: python3 scripts/deploy.py configs/${{ steps.project.outputs.project_name }}.yaml
-
-      - name: List generated files
-        run: ls -la generated-projects/${{ steps.project.outputs.project_name }}
-
+      
       - name: Check if GitHub repo exists
         id: repo_check
         env:
@@ -68,21 +65,89 @@ jobs:
             gh repo create $REPO --public --description "Auto-generated Terraform project" --confirm
           fi
 
-      - name: Configure git user
-        run: |
-          git config --global user.name "${{ github.actor }}"
-          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
 
 
-      - name: Push generated Terraform to target repo
+      - name: Generate Terraform project
+        run: python3 scripts/deploy.py configs/${{ steps.project.outputs.project_name }}.yaml
+
+      - name: Commit .terraform.lock.hcl for provider tracking
         run: |
           cd generated-projects/${{ steps.project.outputs.project_name }}
-          git init
-          git branch -M main
-          git add .
-          git commit -m "Initial commit"
-          git remote add origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository_owner }}/${{ steps.project.outputs.project_name }}.git
-          git push -u origin main
+          terraform init -upgrade
+          terraform providers lock -platform=linux_amd64
+          git add .terraform.lock.hcl
+          git commit -m "Track provider versions" || true
+
+      - name: Process each YAML config
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          mkdir -p generated-projects
+
+          for FILE in configs/*.yaml; do
+            NAME=$(basename "$FILE" .yaml)
+            echo "Processing project: $NAME"
+
+            # Generate Terraform project
+            python3 scripts/deploy.py "configs/$FILE"
+
+            # Target repo info
+            REPO="${GH_OWNER}/${NAME}"
+            TARGET_DIR="generated-projects/${NAME}"
+
+            # Create repo if not exists
+            if ! gh api "repos/$REPO" &>/dev/null; then
+              echo "🪄 Creating new repo $REPO..."
+              gh repo create "$REPO" --public --description "Auto-generated Terraform project" --confirm
+            else
+              echo "✅ Repo $REPO already exists"
+            fi
+
+            # Clone or update repo
+            if [ -d "$TARGET_DIR/.git" ]; then
+              echo "🔄 Pulling latest changes for $REPO..."
+              cd "$TARGET_DIR"
+              git pull origin main || true
+              cd - >/dev/null
+            else
+              echo "⬇️ Cloning $REPO..."
+              rm -rf "$TARGET_DIR"
+              git clone "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "$TARGET_DIR"
+            fi
+
+            # Copy generated files
+            echo "📦 Updating Terraform code..."
+            cp -r "$NAME"/* "$TARGET_DIR"/
+
+            # Commit and push
+            cd "$TARGET_DIR"
+            git add .
+            if ! git diff --cached --quiet; then
+              git commit -m "Update Terraform configuration from controller"
+              git push origin main
+            else
+              echo "No changes to push."
+            fi
+            cd - >/dev/null
+
+            echo "✅ Project $NAME synced successfully."
+          done
+
+
+      # - name: List generated files
+      #   run: ls -la generated-projects/${{ steps.project.outputs.project_name }}
+
+          
+
+      # - name: Push generated Terraform to target repo
+      #   run: |
+      #     cd generated-projects/${{ steps.project.outputs.project_name }}
+      #     git init
+      #     git branch -M main
+      #     git add .
+      #     git commit -m "Initial commit"
+      #     git remote add origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository_owner }}/${{ steps.project.outputs.project_name }}.git
+      #     git push -u origin main
 
 
       - name: Configure AWS credentials
