@@ -1,4 +1,6 @@
 from pathlib import Path
+import argparse
+
 
 def create_gitignore(target_dir, content=None):
     """Create a .gitignore file inside target_dir with default or custom content."""
@@ -37,4 +39,8 @@ Thumbs.db
 
 # Example usage
 if __name__ == "__main__":
-    create_gitignore("./generated-projects/my-project")
+    parser = argparse.ArgumentParser(description="Create a .gitignore file in the specified directory.")
+    parser.add_argument("target_dir", help="Target directory to create .gitignore in.")
+
+    args = parser.parse_args()
+    create_gitignore(args.target_dir)
