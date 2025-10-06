@@ -123,6 +123,10 @@ jobs:
               git clone "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "$TARGET_DIR"
             fi
 
+            # Ensure .gitignore exists
+            echo "📝 Ensuring .gitignore exists..."
+            python3 scripts/create_gitignore.py "$TARGET_DIR"
+
             # Copy generated files
             echo "📦 Updating Terraform code..."
             cp -r "$NAME"/* "$TARGET_DIR"/
