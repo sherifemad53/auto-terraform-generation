@@ -2,43 +2,17 @@ region: "us-east-1"
 
 modules:
   vpc:
-    vpc_name: "my-vpc"
-    vpc_cidr: "10.0.0.0/16"
+    vpc_name: "my-vpc2"
+    vpc_cidr: "20.0.0.0/16"
 
   subnet:
     vpc_id: "module.vpc.vpc_id"
     subnets:
       subnet-1:
-        cidr: "10.0.1.0/24"
+        cidr: "20.0.1.0/24"
         az: "us-east-1a"
         public: true
       subnet-2:
-        cidr: "10.0.2.0/24"
+        cidr: "20.0.2.0/24"
         az: "us-east-1b"
         public: false
-
-  ec2:
-    ami: "ami-0360c520857e3138f"
-    instance_type: "t2.micro"
-    key_name: "my-keypair"
-    instance_name: "my-ec2"
-    subnet_id: "module.subnets.subnet_ids[0]"
-    sg_id: "module.sg.sg_id"
-
-  sg:
-    vpc_id: "module.vpc.vpc_id"
-    name: "main-sg"
-    ingress_rules:
-      - from_port: 22
-        to_port: 22
-        protocol: "tcp"
-        cidr_blocks: ["0.0.0.0/0"]
-      - from_port: 80
-        to_port: 80
-        protocol: "tcp"
-        cidr_blocks: ["0.0.0.0/0"]
-    egress_rules:
-      - from_port: 0
-        to_port: 0
-        protocol: "-1"
-        cidr_blocks: ["0.0.0.0/0"]

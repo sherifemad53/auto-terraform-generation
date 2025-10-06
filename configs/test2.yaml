@@ -18,9 +18,9 @@ modules:
         public: false
 
   ec2:
-    ami: "ami-0360c520857e3138f"
+    ami: "ami-052064a798f08f0d3"
     instance_type: "t2.micro"
-    key_name: "my-keypair"
+    key_name: "EC2_Key"
     instance_name: "my-ec2"
     subnet_id: "module.subnets.subnet_ids[0]"
     sg_id: "module.sg.sg_id"

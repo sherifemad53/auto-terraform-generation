@@ -19,7 +19,7 @@ jobs:
 
     env:
       GH_OWNER: sherifemad53
-      TF_STATE_BUCKET: my-terraform-states
+      TF_STATE_BUCKET: my-terraform-states-konecta
       AWS_REGION: us-east-1
 
     steps:
@@ -137,12 +137,15 @@ jobs:
             echo "🔧 Initializing Terraform with S3 backend..."
             terraform init \
             -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
-            -backend-config="key=${{ steps.project.outputs.project_name }}/terraform.tfstate" \
+            -backend-config="key=${{ NAME }}/terraform.tfstate" \
             -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="encrypt=true"
 
             echo "📋 Running Terraform plan..."
             terraform plan
+
+            echo "🚀 Applying Terraform configuration..."
+            terraform apply -auto-approve
 
             cd - >/dev/null
 
@@ -167,4 +170,4 @@ jobs:
       - name: Terraform Apply
         run: |
           cd $(basename ${{ github.event.inputs.config_file }} .yaml)
-          terraform apply -auto-approve
+          
