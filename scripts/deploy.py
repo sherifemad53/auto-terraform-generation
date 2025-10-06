@@ -65,12 +65,15 @@ def generate_tf_project(yaml_file):
         main_tf.append(f'module "{mod_name}" {{')
         main_tf.append(f'  source = "{source}"')
 
-        for key, _ in mod_conf.items():
-            main_tf.append(f'  {key} = var.{mod_name}_{key}')
-            variables_tf.append(f'variable "{mod_name}_{key}" {{}}')
+        for key, val in mod_conf.items():
+            # If it's a Terraform expression, write it literally
+            if isinstance(val, str) and val.startswith("module."):
+                main_tf.append(f'  {key} = {val}')
+            else:
+                main_tf.append(f'  {key} = var.{mod_name}_{key}')
+                variables_tf.append(f'variable "{mod_name}_{key}" {{}}')
 
         main_tf.append("}\n")
-
         copy_or_create_module(project_dir / "modules" / mod_name, mod_conf, source)
 
     # Write files
@@ -85,21 +88,27 @@ def generate_tf_project(yaml_file):
 
 
 def flatten_vars(config: dict):
+    """
+    Flatten only real Terraform variables — not module references.
+    Skips entire `modules` section except for primitive + list vars.
+    """
     flat = {}
 
-    # --- top-level vars ---
+    # --- top-level vars like region, profile ---
     for key, val in config.items():
-        if key in ("modules", "provider"):
+        if key == "modules":
             continue
         if not isinstance(val, dict):
-            flat[key] = val  # region, profile, zone, etc.
+            flat[key] = val
 
     # --- modules vars ---
     modules = config.get("modules", {}) or {}
     for mod, conf in modules.items():
         for key, val in conf.items():
-            if key != "source":
-                flat[f"{mod}_{key}"] = val
+            # Skip expressions like "module.vpc.vpc_id"
+            if isinstance(val, str) and val.startswith("module."):
+                continue
+            flat[f"{mod}_{key}"] = val
 
     return flat
 
@@ -124,17 +133,16 @@ def check_aws_credentials():
         print("❌ Missing AWS credentials. Export AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.")
         sys.exit(1)
 
-
 def run_terraform_commands(project_dir, do_apply=False):
     cwd = os.getcwd()
     try:
         os.chdir(project_dir)
 
-        # # Add backend dynamically
-        # backend_block = get_backend_config(project_dir)
-        # if backend_block:
-        #     with open("backend.tf", "w") as f:
-        #         f.write(backend_block)
+        # Add backend dynamically
+        backend_block = get_backend_config(project_dir)
+        if backend_block:
+            with open("backend.tf", "w") as f:
+                f.write(backend_block)
 
         subprocess.run(["terraform", "init"], check=True)
         if do_apply:
@@ -144,12 +152,11 @@ def run_terraform_commands(project_dir, do_apply=False):
     finally:
         os.chdir(cwd)
 
-
 def get_backend_config(project_dir):
     project_name = project_dir.name
     return f"""terraform {{
   backend "s3" {{
-    bucket = "my-terraform-states"
+    bucket = "my-terraform-states-konecta"
     key    = "{project_name}/terraform.tfstate"
     region = "us-east-1"
   }}

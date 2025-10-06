@@ -22,7 +22,7 @@ modules:
     instance_type: "t2.micro"
     key_name: "EC2_Key"
     instance_name: "my-ec2"
-    subnet_id: "module.subnets.subnet_ids[0]"
+    subnet_id: module.subnet.subnet_ids["subnet-1"]
     sg_id: "module.sg.sg_id"
 
   sg:
