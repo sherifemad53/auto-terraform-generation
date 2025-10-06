@@ -45,38 +45,36 @@ jobs:
       - name: Install dependencies
         run: pip install pyyaml
 
-      - name: Find project YAML file
-        id: project
-        run: |
-          FILE=$(ls configs/*.yaml | head -n 1)
-          NAME=$(basename "$FILE" .yaml)
-          echo "project_name=$NAME" >> $GITHUB_OUTPUT
+      # - name: Find project YAML file
+      #   id: project
+      #   run: |
+      #     FILE=$(ls configs/*.yaml | head -n 1)
+      #     NAME=$(basename "$FILE" .yaml)
+      #     echo "project_name=$NAME" >> $GITHUB_OUTPUT
       
-      - name: Check if GitHub repo exists
-        id: repo_check
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          REPO="${{ env.GH_OWNER }}/${{ steps.project.outputs.project_name }}"
-          if gh api "repos/$REPO" &>/dev/null; then
-            echo "Repo '$REPO' exists."
-          else
-            echo "Creating repo '$REPO_NAME'..."
-            gh repo create $REPO --public --description "Auto-generated Terraform project" --confirm
-          fi
+      # - name: Check if GitHub repo exists
+      #   id: repo_check
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      #   run: |
+      #     REPO="${{ env.GH_OWNER }}/${{ steps.project.outputs.project_name }}"
+      #     if gh api "repos/$REPO" &>/dev/null; then
+      #       echo "Repo '$REPO' exists."
+      #     else
+      #       echo "Creating repo '$REPO_NAME'..."
+      #       gh repo create $REPO --public --description "Auto-generated Terraform project" --confirm
+      #     fi
 
+      # - name: Generate Terraform project
+      #   run: python3 scripts/deploy.py configs/${{ steps.project.outputs.project_name }}.yaml
 
-
-      - name: Generate Terraform project
-        run: python3 scripts/deploy.py configs/${{ steps.project.outputs.project_name }}.yaml
-
-      - name: Commit .terraform.lock.hcl for provider tracking
-        run: |
-          cd generated-projects/${{ steps.project.outputs.project_name }}
-          terraform init -upgrade
-          terraform providers lock -platform=linux_amd64
-          git add .terraform.lock.hcl
-          git commit -m "Track provider versions" || true
+      # - name: Commit .terraform.lock.hcl for provider tracking
+      #   run: |
+      #     cd generated-projects/${{ steps.project.outputs.project_name }}
+      #     terraform init -upgrade
+      #     terraform providers lock -platform=linux_amd64
+      #     git add .terraform.lock.hcl
+      #     git commit -m "Track provider versions" || true
 
       - name: Process each YAML config
         env:
