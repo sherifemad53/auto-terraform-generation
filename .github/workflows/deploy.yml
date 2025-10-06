@@ -135,12 +135,8 @@ jobs:
             fi
             
             echo "🔧 Initializing Terraform with S3 backend..."
-            terraform init \
-            -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
-            -backend-config="key=$NAME/terraform.tfstate" \
-            -backend-config="region=${{ env.AWS_REGION }}" \
-            -backend-config="encrypt=true"
-
+            terraform init 
+            
             echo "📋 Running Terraform plan..."
             terraform plan
 
@@ -151,23 +147,4 @@ jobs:
 
             echo "✅ Project $NAME synced successfully."
           done
-
-
-      # - name: List generated files
-      #   run: ls -la generated-projects/${{ steps.project.outputs.project_name }}
-
-      # - name: Push generated Terraform to target repo
-      #   run: |
-      #     cd generated-projects/${{ steps.project.outputs.project_name }}
-      #     git init
-      #     git branch -M main
-      #     git add .
-      #     git commit -m "Initial commit"
-      #     git remote add origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository_owner }}/${{ steps.project.outputs.project_name }}.git
-      #     git push -u origin main
-          
-
-      - name: Terraform Apply
-        run: |
-          cd $(basename ${{ github.event.inputs.config_file }} .yaml)
           
