@@ -88,6 +88,8 @@ def generate_tf_project(yaml_file):
         with open("backend.tf", "w") as f:
             f.write(backend_block)
 
+    add_gitignore(project_dir)
+
     print(f"✅ Project '{project_name}' generated for AWS at {project_dir.absolute()}")
     return project_dir
 
@@ -161,6 +163,24 @@ def get_backend_config(project_dir):
   }}
 }}
 """
+
+def add_gitignore(project_dir):
+    gitignore_path = project_dir / ".gitignore"
+    if gitignore_path.exists():
+        with open(gitignore_path, "r") as f:
+            lines = f.read().splitlines()
+    else:
+        lines = []
+
+    if ".terraform" not in lines:
+        lines.append(".terraform")
+    if "*.tfstate" not in lines:
+        lines.append("*.tfstate")
+    if "*.tfstate.backup" not in lines:
+        lines.append("*.tfstate.backup")
+
+    with open(gitignore_path, "w") as f:
+        f.write("\n".join(lines) + "\n")
 
 
 if __name__ == "__main__":
