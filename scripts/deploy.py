@@ -32,7 +32,8 @@ def generate_tf_project(yaml_file):
 
     project_name = Path(yaml_file).stem
     base_dir = Path("./generated-projects")
-    project_dir = base_dir / project_name
+    # project_dir = base_dir / project_name
+    project_dir = Path(project_name)
 
     # ✅ Ensure the base folder exists
     base_dir.mkdir(exist_ok=True)
