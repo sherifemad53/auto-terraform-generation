@@ -89,7 +89,7 @@ jobs:
             echo "Processing project: $NAME"
 
             # Generate Terraform project
-            python3 scripts/deploy.py "configs/$FILE"
+            python3 scripts/deploy.py "$FILE"
 
             # Target repo info
             REPO="${GH_OWNER}/${NAME}"
