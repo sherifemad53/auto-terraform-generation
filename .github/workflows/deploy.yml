@@ -96,9 +96,6 @@ jobs:
             # Generate Terraform project
             python3 scripts/deploy.py "$FILE"
 
-            echo "🔧 Initializing Terraform with S3 backend..."
-            terraform init 
-
             # Target repo info
             REPO="${GH_OWNER}/${NAME}"
             TARGET_DIR="generated-projects/${NAME}"
@@ -127,8 +124,12 @@ jobs:
             echo "📦 Updating Terraform code..."
             cp -r "$NAME"/* "$TARGET_DIR"/
 
-            # Commit and push
             cd "$TARGET_DIR"
+            
+            echo "🔧 Initializing Terraform with S3 backend..."
+            terraform init 
+
+            # Commit and push
             git add .
             if ! git diff --cached --quiet; then
               git commit -m "Update Terraform configuration from controller"
@@ -136,8 +137,8 @@ jobs:
             else
               echo "No changes to push."
             fi
-            echo "✅ Code pushed to $REPO"
-
+            
+            
             
             echo "📋 Running Terraform plan..."
             terraform plan
