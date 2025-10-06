@@ -137,7 +137,7 @@ jobs:
             echo "🔧 Initializing Terraform with S3 backend..."
             terraform init \
             -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
-            -backend-config="key=${{ NAME }}/terraform.tfstate" \
+            -backend-config="key=$NAME/terraform.tfstate" \
             -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="encrypt=true"
 
