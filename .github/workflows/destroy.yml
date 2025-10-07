@@ -1,0 +1,26 @@
+# Destroy Terraform infrastructure based on YAML config changes
+name: Destroy Terraform Projects
+
+# on:
+#   # push:
+#   #   paths:
+#   #     - "configs/*.yaml"
+  
+#   workflow_dispatch:
+
+# jobs:
+#   destroy:
+#     runs-on: ubuntu-latest
+
+#     permissions:
+#       contents: write
+#       id-token: write
+
+#     env:
+#       GH_OWNER: sherifemad53
+#       TF_STATE_BUCKET: my-terraform-states-konecta
+#       AWS_REGION: us-east-1
+
+#     steps:
+#       - name: Checkout main repo
+#         uses: actions/checkout@v4

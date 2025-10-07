@@ -1,6 +1,6 @@
 # Auto Terraform Generation (AWS)
 
-This repository provides a Terraform-based framework to provision common AWS infrastructure components, and includes helper scripts to generate per-project Terraform from YAML and run Terraform commands.
+This repository provides a Terraform-based framework to provision common AWS infrastructure components, and includes enhanced helper scripts to generate per-project Terraform from YAML with automatic module copying, backend configuration, and state management.
 
 ## Features
 - VPC creation with public/private subnets
@@ -10,7 +10,10 @@ This repository provides a Terraform-based framework to provision common AWS inf
 - EC2 instance
 - S3 bucket
 - Application Load Balancer (ALB)
-- YAML-driven project generation via `scripts/deploy.py`
+- **Enhanced YAML-driven project generation** via `scripts/deploy.py`
+- **Automatic module copying** and dependency management
+- **S3 backend configuration** for state management
+- **Git ignore** and project structure setup
 
 ## Repository Structure
 
@@ -21,15 +24,22 @@ This repository provides a Terraform-based framework to provision common AWS inf
 ├── terraform.tfvars       # Example variable values
 ├── modules/               # Reusable Terraform modules (vpc, subnet, sg, ec2, s3, alb, igw, nat, rt, eip)
 ├── scripts/
-│   ├── deploy.py          # Generate a per-project folder from YAML and run init/plan
-│   └── destroy.py         # Placeholder for destroy helper
+│   ├── deploy.py          # Enhanced generator: creates project dir, copies modules, adds backend/gitignore
+│   └── destroy.py         # Destroy generated project based on YAML filename
 ├── configs/
 │   ├── project-requirments.yaml  # Example full configuration for root
 │   └── test1.yaml                # Example for generator flow
-├── test1/                 # Example generated project (by script)
-│   ├── main.tf
-│   ├── variables.tf
-│   └── terraform.tfvars.json
+├── generated-projects/    # Directory for generated projects (optional)
+├── screenshots/           # Documentation screenshots
+│   ├── Created_EC2.png
+│   ├── Created_VPCs.png
+│   ├── generated_repo_test1.png
+│   ├── generated_repo_test2.png
+│   ├── Pipeline_finished.png
+│   ├── Running_test1.png
+│   ├── Running_test2.png
+│   ├── S3_Bucket.png
+│   └── terraform_apply_test2.png
 └── app-requirenemts.md    # Project requirements and context
 ```
 
@@ -53,22 +63,33 @@ This repository provides a Terraform-based framework to provision common AWS inf
    terraform apply
    ```
 
-## YAML-driven Generation (scripts/deploy.py)
-The generator reads a YAML config and creates a project directory named after the YAML file (without extension). It writes:
-- `main.tf` and `variables.tf` with module stubs
-- `terraform.tfvars.json` with flattened variables
-Then it runs `terraform init` and `terraform plan` in the generated directory.
+## Enhanced YAML-driven Generation (scripts/deploy.py)
 
-Example config (`configs/test1.yaml`):
+The enhanced generator reads a YAML config and creates a complete project directory with the following features:
+
+### What it generates:
+- **Complete project structure** with proper module organization
+- **Automatic module copying** from `./modules/` to project directory
+- **Backend configuration** for S3 state management
+- **Git ignore** setup for Terraform files
+- **Proper variable handling** with support for Terraform expressions
+- **Terraform >= 1.5** version requirement
+
+### Example config (`configs/test1.yaml`):
 ```yaml
 region: "us-east-1"
 modules:
   vpc:
-    source: "./modules/vpc"
     vpc_name: "my-vpc"
     vpc_cidr: "10.0.0.0/16"
+  subnet:
+    vpc_id: "module.vpc.vpc_id"
+    subnets:
+      subnet-1:
+        cidr: "10.0.1.0/24"
+        az: "us-east-1a"
+        public: true
   sg:
-    source: "./modules/sg"
     vpc_id: "module.vpc.vpc_id"
     name: "main-sg"
     ingress_rules:
@@ -77,16 +98,28 @@ modules:
       - { from_port: 0, to_port: 0, protocol: "-1", cidr_blocks: ["0.0.0.0/0"] }
 ```
 
-Run the generator:
+### Usage:
 ```bash
+# Generate project and run plan
 python scripts/deploy.py configs/test1.yaml
-```
-This creates a folder `test1/` with Terraform files and runs `terraform init` and `terraform plan` inside it.
 
-### Notes and Limitations
-- The generator currently expects each module block to include a `source` key. All other keys become variables named `var.<module>_<key>` in the generated `variables.tf`.
-- Values like references (`module.vpc.vpc_id`) are serialized literally into `terraform.tfvars.json`. You may need to replace those with proper wiring in the generated `main.tf` if Terraform evaluation fails.
-- The generator adds a `variable "region"` line only if `region` is provided in the YAML. Review generated `variables.tf` for correctness.
+# Generate project and apply immediately
+python scripts/deploy.py configs/test1.yaml --apply
+```
+
+This creates a folder `test1/` with:
+- Complete Terraform configuration
+- Copied modules from `./modules/`
+- S3 backend configuration
+- Proper `.gitignore`
+- Flattened variables in `terraform.tfvars.json`
+
+### Enhanced Features:
+- **Module path mapping**: Automatically maps module names to `./modules/{name}` paths
+- **Expression support**: Handles `module.*` references correctly in `main.tf`
+- **Backend management**: Creates `backend.tf` with S3 configuration
+- **State management**: Uses centralized S3 bucket for state storage
+- **Project isolation**: Each generated project is self-contained
 
 ## Modules Overview
 Each module in `modules/` encapsulates a specific AWS resource pattern. For details, read each module’s `variables.tf` and `output(s).tf`. Example for route tables:
@@ -129,7 +162,141 @@ terraform destroy
 ```
 For generated projects, run destroy in that project directory.
 
+## GitHub Actions CI/CD Pipeline
+
+The project includes automated CI/CD workflows that trigger when YAML configuration files are added or modified in the `configs/` directory.
+
+### Workflow Files
+- **`.github/workflows/deploy.yml`** - Automated deployment pipeline
+- **`.github/workflows/destroy.yml`** - Infrastructure destruction (currently disabled)
+
+### Deploy Pipeline Features
+
+#### Triggers
+- **Push events**: Automatically triggers when any `.yaml` file in `configs/` is modified
+- **Manual dispatch**: Can be triggered manually via GitHub Actions UI
+
+#### Pipeline Steps
+
+1. **Environment Setup**
+   - Ubuntu latest runner
+   - Terraform 1.8.5 installation
+   - Python 3.11 setup
+   - Git configuration
+
+2. **AWS Configuration**
+   - AWS credentials setup via GitHub Secrets
+   - Region configuration (us-east-1)
+   - S3 state bucket access
+
+3. **Project Generation**
+   - Processes each YAML file in `configs/`
+   - Runs `scripts/deploy.py` for each configuration
+   - Creates isolated project directories
+
+4. **Repository Management**
+   - Creates new GitHub repositories for each project (if they don't exist)
+   - Clones/updates existing repositories
+   - Manages project-specific repositories under your GitHub account
+
+5. **Infrastructure Deployment**
+   - Terraform initialization with S3 backend
+   - Terraform plan execution
+   - Terraform apply with auto-approval
+   - Commits and pushes changes to project repositories
+
+#### Required GitHub Secrets
+
+Configure these secrets in your repository settings:
+
+```
+AWS_ACCESS_KEY_ID      # Your AWS access key
+AWS_SECRET_ACCESS_KEY  # Your AWS secret key
+GH_TOKEN              # GitHub personal access token with repo permissions
+```
+
+#### Repository Structure Created
+
+For each YAML config file (e.g., `test1.yaml`), the pipeline:
+- Creates a new repository: `{your-username}/test1`
+- Generates complete Terraform project structure
+- Copies modules and configurations
+- Sets up S3 backend for state management
+- Commits and pushes all files
+
+#### Pipeline Benefits
+
+- **Automated Infrastructure**: No manual intervention required
+- **Repository Isolation**: Each project gets its own repository
+- **State Management**: Centralized S3 backend for Terraform state
+- **Version Control**: Full git history for each project
+- **Scalability**: Process multiple configurations simultaneously
+
+#### Usage Example
+
+1. Create a new YAML file in `configs/my-new-project.yaml`
+2. Push to your repository
+3. Pipeline automatically:
+   - Generates Terraform project
+   - Creates `my-new-project` repository
+   - Deploys infrastructure to AWS
+   - Commits all changes
+
+#### Monitoring
+
+The pipeline provides detailed logs for:
+- Project generation status
+- Repository creation/updates
+- Terraform execution results
+- Infrastructure deployment status
+
+### Future Enhancements
+
+- **Slack Notifications**: Currently commented out, can be enabled for deployment status updates
+- **Destroy Workflow**: Infrastructure cleanup workflow (currently disabled)
+- **Multi-environment Support**: Support for dev/staging/prod environments
+- **Validation Steps**: Pre-deployment validation and testing
+
+
+## Screenshots
+
+### Project Generation and Execution
+![Generated Repository Test1](screenshots/generated_repo_test1.png)
+*Generated project structure for test1.yaml*
+
+![Generated Repository Test2](screenshots/generated_repo_test2.png)
+*Generated project structure for test2.yaml*
+
+### Terraform Execution
+![Running Test1](screenshots/Running_test1.png)
+*Terraform init and plan execution for test1*
+
+![Running Test2](screenshots/Running_test2.png)
+*Terraform init and plan execution for test2*
+
+![Terraform Apply Test2](screenshots/terraform_apply_test2.png)
+*Terraform apply execution for test2*
+
+### AWS Resources Created
+![Created VPCs](screenshots/Created_VPCs.png)
+*VPC resources created in AWS*
+
+![Created EC2](screenshots/Created_EC2.png)
+*EC2 instances created in AWS*
+
+![S3 Bucket](screenshots/S3_Bucket.png)
+*S3 bucket created in AWS*
+
+### Pipeline Completion
+![Pipeline Finished](screenshots/Pipeline_finished.png)
+*Complete pipeline execution summary*
+
 ## Roadmap
-- Improve variable generation and expression support in `deploy.py`
-- Implement `scripts/destroy.py` to auto-destroy generated projects based on YAML
-- Add CI workflow and linting
+- ✅ Enhanced variable generation and expression support in `deploy.py`
+- ✅ Implemented `scripts/destroy.py` to auto-destroy generated projects based on YAML
+- ✅ GitHub Actions CI/CD pipeline for automated deployments
+- Support for additional cloud providers (GCP, Azure)
+- Enhanced error handling and validation
+- Slack/email notifications for deployment status
+- Multi-environment support (dev/staging/prod)
+- Pre-deployment validation and testing
