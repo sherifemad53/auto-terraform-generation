@@ -3,13 +3,6 @@
 This repository provides a Terraform-based framework to provision common AWS infrastructure components, and includes enhanced helper scripts to generate per-project Terraform from YAML with automatic module copying, backend configuration, and state management.
 
 ## Features
-- VPC creation with public/private subnets
-- Internet Gateway, Elastic IP, and NAT Gateway
-- Public and private route tables
-- Security Group with customizable ingress/egress rules
-- EC2 instance
-- S3 bucket
-- Application Load Balancer (ALB)
 - **Enhanced YAML-driven project generation** via `scripts/deploy.py`
 - **Automatic module copying** and dependency management
 - **S3 backend configuration** for state management
@@ -30,16 +23,6 @@ This repository provides a Terraform-based framework to provision common AWS inf
 │   ├── project-requirments.yaml  # Example full configuration for root
 │   └── test1.yaml                # Example for generator flow
 ├── generated-projects/    # Directory for generated projects (optional)
-├── screenshots/           # Documentation screenshots
-│   ├── Created_EC2.png
-│   ├── Created_VPCs.png
-│   ├── generated_repo_test1.png
-│   ├── generated_repo_test2.png
-│   ├── Pipeline_finished.png
-│   ├── Running_test1.png
-│   ├── Running_test2.png
-│   ├── S3_Bucket.png
-│   └── terraform_apply_test2.png
 └── app-requirenemts.md    # Project requirements and context
 ```
 
@@ -126,10 +109,6 @@ Each module in `modules/` encapsulates a specific AWS resource pattern. For deta
 
 ```startLine:endLine:modules/rt/README.md
 # rt Module
-
-## Usage
-
-```hcl
 module "rt" {
   source = "./modules/rt"
 
@@ -138,7 +117,6 @@ module "rt" {
     Environment = "dev"
   }
 }
-```
 ```
 
 ## Inputs
@@ -160,17 +138,21 @@ If you applied from the root, you can destroy resources:
 ```bash
 terraform destroy
 ```
-For generated projects, run destroy in that project directory.
 
-## GitHub Actions CI/CD Pipeline
+## For generated projects, run destroy script.
+```bash
+python scripts/destory.py configs/test1.yaml
+```
+
+# GitHub Actions CI/CD Pipeline
 
 The project includes automated CI/CD workflows that trigger when YAML configuration files are added or modified in the `configs/` directory.
 
-### Workflow Files
+## Workflow Files
 - **`.github/workflows/deploy.yml`** - Automated deployment pipeline
 - **`.github/workflows/destroy.yml`** - Infrastructure destruction (currently disabled)
 
-### Deploy Pipeline Features
+## Deploy Pipeline Features
 
 #### Triggers
 - **Push events**: Automatically triggers when any `.yaml` file in `configs/` is modified
